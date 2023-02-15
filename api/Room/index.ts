@@ -1,5 +1,5 @@
-import express, { Router } from "express"
 import passport from "passport"
+import express, { Router } from "express"
 
 import { findByUserIdRoomChat, createUserIdRoomChat } from "./controller"
 

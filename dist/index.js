@@ -24,7 +24,6 @@ const index_1 = __importDefault(require("./db/index"));
 const passport_strategy_1 = __importDefault(require("./middleware/passport-strategy"));
 const room_model_1 = __importDefault(require("./db/models/Room/room.model"));
 const chat_model_1 = __importDefault(require("./db/models/Chat/chat.model"));
-const user_model_1 = __importDefault(require("./db/models/User/user.model"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT;
@@ -41,16 +40,15 @@ app.use(passport_1.default.initialize());
 (0, passport_strategy_1.default)(passport_1.default);
 (0, api_1.default)(app);
 io.on('connection', (socket) => __awaiter(void 0, void 0, void 0, function* () {
-    const { owner_user_id, second_user_id, nickName, room_id } = socket.handshake.auth;
-    if (room_id !== null) {
-        const fetchedRoom = yield room_model_1.default.findByPk(room_id);
-        const fetchedUser = yield user_model_1.default.findByPk(second_user_id);
+    const { owner_user_id, second_user_id, nickName } = socket.handshake.auth;
+    const room = yield room_model_1.default.findRoomByUserId(owner_user_id, second_user_id);
+    if (room) {
         // Fetch Data From Models
-        socket.emit("fetch data room chat", { room: fetchedRoom, user: fetchedUser });
+        socket.emit("fetch data room chat", room);
     }
     // Send Messages Logic Setup
     socket.on("private message", ({ message, nickName: userName, to }) => __awaiter(void 0, void 0, void 0, function* () {
-        if (room_id === null) {
+        if (!room) {
             const { id } = yield room_model_1.default.createRoom({ owner_user_id, second_user_id });
             const { id: created_chat_id } = yield chat_model_1.default.createMessage({ nickName: userName, message, room_id: id, send_user_id: to, });
             socket.emit("private message", {
@@ -62,12 +60,12 @@ io.on('connection', (socket) => __awaiter(void 0, void 0, void 0, function* () {
             });
         }
         else {
-            const { id: created_chat_id } = yield chat_model_1.default.createMessage({ nickName: userName, message, room_id, send_user_id: to, });
+            const { id: created_chat_id } = yield chat_model_1.default.createMessage({ nickName: userName, message, room_id: room.id, send_user_id: to, });
             socket.emit("private message", {
                 id: created_chat_id,
                 nickName: userName,
                 message,
-                room_id,
+                room_id: room.id,
                 from: socket.id,
             });
         }

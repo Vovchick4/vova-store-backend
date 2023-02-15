@@ -37,18 +37,17 @@ initStrategy(passport)
 api(app)
 
 io.on('connection', async (socket) => {
-  const { owner_user_id, second_user_id, nickName, room_id } = socket.handshake.auth
+  const { owner_user_id, second_user_id, nickName } = socket.handshake.auth
+  const room = await Room.findRoomByUserId(owner_user_id, second_user_id)
 
-  if (room_id !== null) {
-    const fetchedRoom = await Room.findByPk(room_id)
-    const fetchedUser = await User.findByPk(second_user_id)
+  if (room) {
     // Fetch Data From Models
-    socket.emit("fetch data room chat", { room: fetchedRoom, user: fetchedUser })
+    socket.emit("fetch data room chat", room)
   }
 
   // Send Messages Logic Setup
   socket.on("private message", async ({ message, nickName: userName, to }: { message: string, nickName: string, to: any }) => {
-    if (room_id === null) {
+    if (!room) {
       const { id } = await Room.createRoom({ owner_user_id, second_user_id })
       const { id: created_chat_id } = await Chat.createMessage({ nickName: userName, message, room_id: id, send_user_id: to, })
 
@@ -60,13 +59,13 @@ io.on('connection', async (socket) => {
         from: socket.id,
       })
     } else {
-      const { id: created_chat_id } = await Chat.createMessage({ nickName: userName, message, room_id, send_user_id: to, })
+      const { id: created_chat_id } = await Chat.createMessage({ nickName: userName, message, room_id: room.id, send_user_id: to, })
 
       socket.emit("private message", {
         id: created_chat_id,
         nickName: userName,
         message,
-        room_id,
+        room_id: room.id,
         from: socket.id,
       })
     }

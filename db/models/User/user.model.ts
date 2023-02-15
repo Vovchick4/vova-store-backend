@@ -1,8 +1,9 @@
 import bcrypt from "bcrypt"
 import { DataTypes, Model } from "sequelize"
+import { sequelize } from "../../index"
 import Room from "../Room/room.model"
 import Chat from "../Chat/chat.model"
-import { sequelize } from "../../index"
+import Friend from "../Friend/friend.model"
 
 export interface ICreateUserData {
     nickName: string
@@ -61,10 +62,11 @@ User.init({
 // User.hasMany(Room)
 // User.hasMany(Chat)
 
-User.sync({}).then(async () => {
-    User.hasMany(Chat, { as: "chat_message", foreignKey: "send_user_id" })
-    User.hasMany(Room, { as: "owner_user", foreignKey: "owner_user_id" })
-    User.hasMany(Room, { as: "second_user", foreignKey: "second_user_id" })
-}).catch(err => console.log(err))
+User.hasMany(Chat, { as: "chat_message", foreignKey: "send_user_id" })
+User.hasMany(Room, { as: "owner_user", foreignKey: "owner_user_id" })
+User.hasMany(Room, { as: "second_user", foreignKey: "second_user_id" })
+User.hasMany(Friend, { as: "invated_friend", foreignKey: "invated_friend_id" })
+
+User.sync({}).then(async () => { }).catch(err => console.log(err))
 
 export default User

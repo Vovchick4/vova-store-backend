@@ -14,9 +14,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const sequelize_1 = require("sequelize");
+const index_1 = require("../../index");
 const room_model_1 = __importDefault(require("../Room/room.model"));
 const chat_model_1 = __importDefault(require("../Chat/chat.model"));
-const index_1 = require("../../index");
+const friend_model_1 = __importDefault(require("../Friend/friend.model"));
 class User extends sequelize_1.Model {
     static createUser(data) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -62,9 +63,9 @@ User.init({
 });
 // User.hasMany(Room)
 // User.hasMany(Chat)
-User.sync({}).then(() => __awaiter(void 0, void 0, void 0, function* () {
-    User.hasMany(chat_model_1.default, { as: "chat_message", foreignKey: "send_user_id" });
-    User.hasMany(room_model_1.default, { as: "owner_user", foreignKey: "owner_user_id" });
-    User.hasMany(room_model_1.default, { as: "second_user", foreignKey: "second_user_id" });
-})).catch(err => console.log(err));
+User.hasMany(chat_model_1.default, { as: "chat_message", foreignKey: "send_user_id" });
+User.hasMany(room_model_1.default, { as: "owner_user", foreignKey: "owner_user_id" });
+User.hasMany(room_model_1.default, { as: "second_user", foreignKey: "second_user_id" });
+User.hasMany(friend_model_1.default, { as: "invated_friend", foreignKey: "invated_friend_id" });
+User.sync({}).then(() => __awaiter(void 0, void 0, void 0, function* () { })).catch(err => console.log(err));
 exports.default = User;

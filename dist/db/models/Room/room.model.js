@@ -19,7 +19,12 @@ const user_model_1 = __importDefault(require("../User/user.model"));
 class Room extends sequelize_1.Model {
     static createRoom(data) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield Room.create(Object.assign({}, data));
+            return yield this.create(Object.assign({}, data));
+        });
+    }
+    static findRoomByUserId(owner_user_id, second_user_id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.findOne({ include: [this.associations.chat, this.associations.owner_user, this.associations.second_user], where: { owner_user_id, second_user_id } });
         });
     }
 }
@@ -55,9 +60,9 @@ Room.init({
     //     allowNull: false
     // }
 }, { sequelize: index_1.sequelize, tableName: "Room" });
+Room.hasMany(chat_model_1.default, { as: "chat", foreignKey: "room_id" });
 Room.sync({}).then(() => {
     Room.belongsTo(user_model_1.default, { as: "owner_user", foreignKey: "owner_user_id" });
     Room.belongsTo(user_model_1.default, { as: "second_user", foreignKey: "second_user_id" });
-    Room.hasMany(chat_model_1.default, { as: "chat", foreignKey: "room_id" });
 }).catch(err => console.log(err));
 exports.default = Room;

@@ -66,7 +66,7 @@ Chat.sync({}).then(() => {
     //     targetKey: "id",
     //     as: "room"
     // })
-    Chat.belongsTo(user_model_1.default, { as: "user_message", foreignKey: "send_user_id" });
     Chat.belongsTo(room_model_1.default, { as: "room", foreignKey: "room_id" });
+    Chat.belongsTo(user_model_1.default, { as: "user_message", foreignKey: "send_user_id" });
 }).catch(err => console.log(err));
 exports.default = Chat;
