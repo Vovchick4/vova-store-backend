@@ -7,14 +7,15 @@ const host: string = process.env.HOST || "localhost"
 
 export const sequelize = new Sequelize(db_name, db_username, db_user_pass, {
     host,
-    port: 3338,
+    port: 5432,
     ssl: false,
-    dialect: 'mariadb',
+    dialect: 'postgres',
 })
 
-export default function dbConnection() {
-    sequelize.authenticate().then(() => {
+export default function dbConnection(callback = () => { }) {
+    sequelize.sync().then(() => {
         console.log('Connection has been established successfully.');
+        callback()
     }).catch((error) => {
         console.error('Unable to connect to the database:', error)
     })

@@ -56,6 +56,10 @@ Chat.init({
         type: sequelize_1.DataTypes.STRING,
     },
 }, { sequelize: index_1.sequelize, tableName: "Chat" });
+user_model_1.default.hasMany(Chat, { as: "chat_message", foreignKey: "send_user_id" });
+Chat.belongsTo(user_model_1.default, { as: "user_message", foreignKey: "send_user_id" });
+room_model_1.default.hasMany(Chat, { as: "chat", foreignKey: "room_id" });
+Chat.belongsTo(room_model_1.default, { as: "room", foreignKey: "room_id" });
 Chat.sync({}).then(() => {
     // Chat.belongsTo(User, { as: "User" })
     // Chat.belongsTo(Room, { 
@@ -66,7 +70,5 @@ Chat.sync({}).then(() => {
     //     targetKey: "id",
     //     as: "room"
     // })
-    Chat.belongsTo(room_model_1.default, { as: "room", foreignKey: "room_id" });
-    Chat.belongsTo(user_model_1.default, { as: "user_message", foreignKey: "send_user_id" });
 }).catch(err => console.log(err));
 exports.default = Chat;

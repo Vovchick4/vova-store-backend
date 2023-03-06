@@ -1,7 +1,7 @@
 import { PassportStatic } from "passport";
 import jwt from "passport-jwt"
 
-import User from "../db/models/User/user.model"
+import UserModel from "../db/models/User/user.model"
 
 // Configuration for jwt-strategy in 'passport'
 const options = {
@@ -12,9 +12,9 @@ const options = {
 export default function initStrategy(passport: PassportStatic) {
     passport.use(new jwt.Strategy(options, async (payload: any, done) => {
         try {
-            const guest = await User.findByPk(payload.id)
+            const guest = await UserModel.findByPk(payload.id)
             if (!guest) {
-                return done(null, false)
+                return done(null, { status: 401, message: "Unauthorized" })
             } else {
                 return done(null, guest.get())
             }

@@ -23,6 +23,5 @@ Item.init({
         allowNull: false,
     }
 }, { sequelize: index_1.sequelize });
-Item.sync({}).then(() => {
-}).catch(err => console.log(err));
+Item.sync({}).then(() => { }).catch(err => console.log(err));
 exports.default = Item;

@@ -2,53 +2,52 @@ import {
     Model, DataTypes, Association, InferAttributes, InferCreationAttributes, NonAttribute,
     HasManyGetAssociationsMixin, HasManyAddAssociationMixin, HasManyAddAssociationsMixin, HasManySetAssociationsMixin,
     HasManyRemoveAssociationMixin, HasManyRemoveAssociationsMixin, HasManyHasAssociationsMixin, HasManyCreateAssociationMixin,
-    HasManyCountAssociationsMixin, HasManyHasAssociationMixin
+    HasManyCountAssociationsMixin, HasManyHasAssociationMixin, Op, HasOneGetAssociationMixin, HasOneCreateAssociationMixin, HasOneSetAssociationMixin
 } from "sequelize"
 import { sequelize } from "../../index"
 import Chat from "../Chat/chat.model"
-import User from "../User/user.model"
+import Friend from "../Friend/friend.model"
+import UserModel from "../User/user.model"
 
-export interface ICreateRoomData {
-    owner_user_id: number,
-    second_user_id: number
-}
-
-class Room extends Model {
+class RoomModel extends Model {
     id!: number
     owner_user_id!: number
     second_user_id!: number
     declare chat?: NonAttribute<Chat[]>
-
-    static async createRoom(data: ICreateRoomData): Promise<Room> {
-        return await this.create({ ...data })
-    }
-
-    static async findRoomByUserId(owner_user_id: number, second_user_id: number): Promise<Room | null> {
-        return await this.findOne({ include: [this.associations.chat, this.associations.owner_user, this.associations.second_user], where: { owner_user_id, second_user_id } })
-    }
+    declare owner_user?: NonAttribute<UserModel>
+    declare second_user?: NonAttribute<UserModel>
 
     // Since TS cannot determine model association at compile time
     // we have to declare them here purely virtually
     // these will not exist until `Model.init` was called.
-    declare getChats: HasManyGetAssociationsMixin<Chat>; // Note the null assertions!
-    declare addChat: HasManyAddAssociationMixin<Chat, number>;
-    declare addChats: HasManyAddAssociationsMixin<Chat, number>;
-    declare setChats: HasManySetAssociationsMixin<Chat, number>;
-    declare removeChat: HasManyRemoveAssociationMixin<Chat, number>;
-    declare removeChats: HasManyRemoveAssociationsMixin<Chat, number>;
-    declare hasChat: HasManyHasAssociationMixin<Chat, number>;
-    declare hasChats: HasManyHasAssociationsMixin<Chat, number>;
-    declare countChats: HasManyCountAssociationsMixin;
-    declare createChat: HasManyCreateAssociationMixin<Chat, 'room_id'>;
+    // Chats
+    declare getChats: HasManyGetAssociationsMixin<Chat> // Note the null assertions!
+    declare addChat: HasManyAddAssociationMixin<Chat, number>
+    declare addChats: HasManyAddAssociationsMixin<Chat, number>
+    declare setChats: HasManySetAssociationsMixin<Chat, number>
+    declare removeChat: HasManyRemoveAssociationMixin<Chat, number>
+    declare removeChats: HasManyRemoveAssociationsMixin<Chat, number>
+    declare hasChat: HasManyHasAssociationMixin<Chat, number>
+    declare hasChats: HasManyHasAssociationsMixin<Chat, number>
+    declare countChats: HasManyCountAssociationsMixin
+    declare createChat: HasManyCreateAssociationMixin<Chat, 'room_id'>
+    // FirstUser
+    declare getOwnerUser: HasOneGetAssociationMixin<UserModel>
+    declare setOwnerUser: HasOneSetAssociationMixin<UserModel, "owner_user_id">
+    declare createOwnerUser: HasOneCreateAssociationMixin<UserModel>
+    // SecondUser
+    declare getSecondUser: HasOneGetAssociationMixin<UserModel>
+    declare setSecondUser: HasOneSetAssociationMixin<UserModel, "second_user_id">
+    declare createSecondUser: HasOneCreateAssociationMixin<UserModel>
 
     declare static associations: {
-        chat: Association<Room, Chat>
-        owner_user: Association<Room, User>
-        second_user: Association<Room, User>
+        chat: Association<RoomModel, Chat>
+        owner_user: Association<RoomModel, UserModel>
+        second_user: Association<RoomModel, UserModel>
     };
 }
 
-Room.init({
+RoomModel.init({
     id: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -81,11 +80,12 @@ Room.init({
     // }
 }, { sequelize, tableName: "Room" })
 
-Room.hasMany(Chat, { as: "chat", foreignKey: "room_id" })
+UserModel.hasMany(RoomModel, { as: "owner_rooms", foreignKey: "owner_user_id" })
+UserModel.hasMany(RoomModel, { as: "second_user", foreignKey: "second_user_id" })
 
-Room.sync({}).then(() => {
-    Room.belongsTo(User, { as: "owner_user", foreignKey: "owner_user_id" })
-    Room.belongsTo(User, { as: "second_user", foreignKey: "second_user_id" })
-}).catch(err => console.log(err))
+RoomModel.belongsTo(UserModel, { as: "owner_user", foreignKey: "owner_user_id" })
+RoomModel.belongsTo(UserModel, { as: "second_user", foreignKey: "second_user_id" })
 
-export default Room
+RoomModel.sync({}).then(() => { }).catch(err => console.log(err))
+
+export default RoomModel

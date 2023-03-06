@@ -15,22 +15,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const sequelize_1 = require("sequelize");
 const index_1 = require("../../index");
-const room_model_1 = __importDefault(require("../Room/room.model"));
-const chat_model_1 = __importDefault(require("../Chat/chat.model"));
-const friend_model_1 = __importDefault(require("../Friend/friend.model"));
-class User extends sequelize_1.Model {
-    static createUser(data) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield User.create(Object.assign({}, data));
-        });
-    }
-    static findUsersBySearchText(text) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield User.findAll({ where: index_1.sequelize.where(index_1.sequelize.fn('LOWER', index_1.sequelize.col('nickName')), 'LIKE', '%' + text.split(" ").join("").toLowerCase() + '%') });
-        });
-    }
+class UserModel extends sequelize_1.Model {
 }
-User.init({
+UserModel.init({
+    socketId: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true
+    },
     nickName: {
         type: sequelize_1.DataTypes.STRING,
         unique: true,
@@ -59,13 +50,9 @@ User.init({
         },
     }
 }, {
-    sequelize: index_1.sequelize
+    sequelize: index_1.sequelize, tableName: "User"
 });
 // User.hasMany(Room)
 // User.hasMany(Chat)
-User.hasMany(chat_model_1.default, { as: "chat_message", foreignKey: "send_user_id" });
-User.hasMany(room_model_1.default, { as: "owner_user", foreignKey: "owner_user_id" });
-User.hasMany(room_model_1.default, { as: "second_user", foreignKey: "second_user_id" });
-User.hasMany(friend_model_1.default, { as: "invated_friend", foreignKey: "invated_friend_id" });
-User.sync({}).then(() => __awaiter(void 0, void 0, void 0, function* () { })).catch(err => console.log(err));
-exports.default = User;
+UserModel.sync({}).then(() => __awaiter(void 0, void 0, void 0, function* () { })).catch(err => console.log(err));
+exports.default = UserModel;

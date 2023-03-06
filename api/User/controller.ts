@@ -4,7 +4,8 @@ import passport from "passport"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 
-import User from "../../db/models/User/user.model"
+import { User } from "../../entities"
+import UserModel from "../../db/models/User/user.model"
 
 // JWT constants
 const {
@@ -14,7 +15,7 @@ const {
 
 export const logInGuest = async (req: Request, res: Response) => {
     const { nickName, password } = req.body
-    const guest = await User.findOne({ where: { nickName } })
+    const guest = await UserModel.findOne({ where: { nickName } })
     if (guest) {
 
         const resultPass = bcrypt.compareSync(password, guest.password)
@@ -44,11 +45,11 @@ export const logInGuest = async (req: Request, res: Response) => {
 export const registerGuest = async (req: Request, res: Response) => {
     const { nickName, email, password } = req.body
     try {
-        const guest = await User.findOne({ where: { nickName } })
+        const guest = await UserModel.findOne({ where: { nickName } })
         if (guest) {
             res.json({ message: "User with this nickname or email already exist" })
         } else {
-            const createdGuest = await User.create({ nickName, email, ...req.body })
+            const createdGuest = await UserModel.create({ nickName, email, ...req.body })
             const token = jwt.sign({ id: createdGuest.id, email: createdGuest.email }, SECRET_JWT_KEY_AUTH, { expiresIn: Number(EXPIRE_TIME_JWT_AUTH) });
             // Response [OK] - jwt and user information
             res
@@ -67,7 +68,7 @@ export const getGuest = (req: Request, res: Response) => {
 
 export const getAllGuest = async (req: Request, res: Response) => {
     try {
-        res.send({ data: await User.findAll({}) })
+        res.send({ data: await UserModel.findAll({}) })
     } catch (error: any) {
         res.status(422).json({ status: 'Get all guest Error', message: error.message })
     }
@@ -76,7 +77,7 @@ export const getAllGuest = async (req: Request, res: Response) => {
 export const getGuestById = async (req: Request, res: Response) => {
     try {
         const guestID = req.params.guestId
-        const finded = await User.findByPk(guestID)
+        const finded = await UserModel.findByPk(guestID)
         res.json({ data: finded?.get() })
     } catch (error: any) {
         res.status(422).json({ status: 'Get guest By ID Error', message: error.message })

@@ -12,7 +12,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createUserIdRoomChat = exports.findByUserIdRoomChat = void 0;
+exports.createUserIdRoomChat = exports.getLastMessageRoomChat = exports.findByUserIdRoomChat = void 0;
+const entities_1 = require("../../entities");
 const room_model_1 = __importDefault(require("../../db/models/Room/room.model"));
 const findByUserIdRoomChat = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const guest = req.user;
@@ -31,6 +32,29 @@ const findByUserIdRoomChat = (req, res) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.findByUserIdRoomChat = findByUserIdRoomChat;
+const getLastMessageRoomChat = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { firstId, secondId } = req.params;
+        if (firstId && secondId) {
+            const findedRoom = yield entities_1.Room.findRoomByUserId(Number(firstId), Number(secondId));
+            if (findedRoom === null || findedRoom === void 0 ? void 0 : findedRoom.chat) {
+                const chat = findedRoom.chat;
+                const lastMessage = chat[chat.length - 1];
+                res.status(200).json({ data: lastMessage });
+            }
+            else {
+                res.status(404).json({ status: 404, message: "Not found in this room_chat" });
+            }
+        }
+        else {
+            res.status(500).json({ status: 500, message: "Provide pls ops Id's" });
+        }
+    }
+    catch (error) {
+        res.status(500).json({ status: 500, message: error.message });
+    }
+});
+exports.getLastMessageRoomChat = getLastMessageRoomChat;
 const createUserIdRoomChat = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const createdRoom = yield room_model_1.default.create(Object.assign({}, req.body));

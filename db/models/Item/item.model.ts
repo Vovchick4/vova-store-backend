@@ -28,7 +28,6 @@ Item.init({
     }
 }, { sequelize })
 
-Item.sync({}).then(() => {
-}).catch(err => console.log(err))
+Item.sync({}).then(() => { }).catch(err => console.log(err))
 
 export default Item

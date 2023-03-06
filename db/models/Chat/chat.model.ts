@@ -1,7 +1,7 @@
 import { Model, DataTypes, ModelStatic } from "sequelize"
 import { sequelize } from "../../index"
-import Room from "../Room/room.model"
-import User from "../User/user.model"
+import RoomModel from "../Room/room.model"
+import UserModel from "../User/user.model"
 
 export interface ICreateMessageData {
     nickName: string,
@@ -56,6 +56,11 @@ Chat.init({
     },
 }, { sequelize, tableName: "Chat" })
 
+UserModel.hasMany(Chat, { as: "chat_message", foreignKey: "send_user_id" })
+Chat.belongsTo(UserModel, { as: "user_message", foreignKey: "send_user_id" })
+RoomModel.hasMany(Chat, { as: "chat", foreignKey: "room_id" })
+Chat.belongsTo(RoomModel, { as: "room", foreignKey: "room_id" })
+
 Chat.sync({}).then(() => {
     // Chat.belongsTo(User, { as: "User" })
     // Chat.belongsTo(Room, { 
@@ -66,8 +71,6 @@ Chat.sync({}).then(() => {
     //     targetKey: "id",
     //     as: "room"
     // })
-    Chat.belongsTo(Room, { as: "room", foreignKey: "room_id" })
-    Chat.belongsTo(User, { as: "user_message", foreignKey: "send_user_id" })
 }).catch(err => console.log(err))
 
 export default Chat

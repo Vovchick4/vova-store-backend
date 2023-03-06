@@ -1,33 +1,41 @@
 import bcrypt from "bcrypt"
-import { DataTypes, Model } from "sequelize"
+import {
+    DataTypes, Model,
+    NonAttribute, HasManyGetAssociationsMixin, HasManyAddAssociationMixin, HasManyAddAssociationsMixin, HasManySetAssociationsMixin,
+    HasManyRemoveAssociationMixin, HasManyRemoveAssociationsMixin, HasManyHasAssociationsMixin, HasManyCreateAssociationMixin,
+    HasManyCountAssociationsMixin, HasManyHasAssociationMixin
+} from "sequelize"
 import { sequelize } from "../../index"
-import Room from "../Room/room.model"
+import RoomModel from "../Room/room.model"
 import Chat from "../Chat/chat.model"
 import Friend from "../Friend/friend.model"
 
-export interface ICreateUserData {
-    nickName: string
-    email: string
-    password: string
-
-}
-
-class User extends Model {
+class UserModel extends Model {
     id!: number
+    socketId!: string
     nickName!: string
     email!: string
     password!: string
+    declare owner_rooms?: NonAttribute<RoomModel[]>
 
-    static async createUser(data: ICreateUserData) {
-        return await User.create({ ...data })
-    }
-
-    static async findUsersBySearchText(text: string) {
-        return await User.findAll({ where: sequelize.where(sequelize.fn('LOWER', sequelize.col('nickName')), 'LIKE', '%' + text.split(" ").join("").toLowerCase() + '%') })
-    }
+    // OwnerRooms
+    declare getOwnerRooms: HasManyGetAssociationsMixin<RoomModel> // Note the null assertions!
+    declare addOwnerRoom: HasManyAddAssociationMixin<RoomModel, number>
+    declare addOwnerRooms: HasManyAddAssociationsMixin<RoomModel, number>
+    declare setOwnerRooms: HasManySetAssociationsMixin<RoomModel, number>
+    declare removeCOwnerRoom: HasManyRemoveAssociationMixin<RoomModel, number>
+    declare removeOwnerRooms: HasManyRemoveAssociationsMixin<RoomModel, number>
+    declare hasOwnerRoom: HasManyHasAssociationMixin<RoomModel, number>
+    declare hasOwnerRooms: HasManyHasAssociationsMixin<RoomModel, number>
+    declare countOwnerRooms: HasManyCountAssociationsMixin
+    declare createOwnerRoom: HasManyCreateAssociationMixin<RoomModel, 'owner_user_id'>
 }
 
-User.init({
+UserModel.init({
+    socketId: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
     nickName: {
         type: DataTypes.STRING,
         unique: true,
@@ -56,17 +64,12 @@ User.init({
         },
     }
 }, {
-    sequelize
+    sequelize, tableName: "User"
 })
 
 // User.hasMany(Room)
 // User.hasMany(Chat)
 
-User.hasMany(Chat, { as: "chat_message", foreignKey: "send_user_id" })
-User.hasMany(Room, { as: "owner_user", foreignKey: "owner_user_id" })
-User.hasMany(Room, { as: "second_user", foreignKey: "second_user_id" })
-User.hasMany(Friend, { as: "invated_friend", foreignKey: "invated_friend_id" })
+UserModel.sync({}).then(async () => { }).catch(err => console.log(err))
 
-User.sync({}).then(async () => { }).catch(err => console.log(err))
-
-export default User
+export default UserModel

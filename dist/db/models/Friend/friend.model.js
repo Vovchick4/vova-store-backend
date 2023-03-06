@@ -19,7 +19,7 @@ class Friend extends sequelize_1.Model {
     static acceptFriend({ owner_user_id, invated_friend_id }, onSuccess = () => { }, onError = () => { }) {
         return __awaiter(this, void 0, void 0, function* () {
             const finded = yield this.findOne({
-                include: [this.associations.owner_user, this.associations.invated_friend_id],
+                include: [this.associations.owner_user, this.associations.invated_friend],
                 where: { [sequelize_1.Op.and]: [{ owner_user_id }, { invated_friend_id }] }
             });
             if (finded) {
@@ -36,12 +36,19 @@ class Friend extends sequelize_1.Model {
     }
     static createFriend(data) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.create(Object.assign({}, data));
+            return yield this.findOrCreate({ include: [this.associations.owner_user, this.associations.invated_friend], where: { owner_user_id: data.owner_user_id, invated_friend_id: data.invated_friend_id }, defaults: Object.assign({}, data) });
         });
     }
-    static findMyFriends({ owner_user_id, invated_friend_id }) {
+    static deleteAllFriend() {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.findAll({ include: [this.associations.owner_user, this.associations.invated_friend_id], where: { [sequelize_1.Op.or]: [{ owner_user_id }, { invated_friend_id }] } });
+            return yield this.destroy({ truncate: true });
+        });
+    }
+    static findMyFriends({ owner_user_id }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const findedFriendWithNotAccepted = yield this.findAll({ include: [this.associations.owner_user, this.associations.invated_friend], where: { [sequelize_1.Op.or]: [{ owner_user_id }, { invated_friend_id: owner_user_id, accepted_friend: { [sequelize_1.Op.is]: null } }] } });
+            const findedFriendWithAccepted = yield this.findAll({ include: [this.associations.owner_user, this.associations.invated_friend], where: { [sequelize_1.Op.or]: [{ owner_user_id }, { invated_friend_id: owner_user_id, accepted_friend: { [sequelize_1.Op.not]: null } }] } });
+            return { not_accepted_friends: findedFriendWithNotAccepted, friends: findedFriendWithAccepted };
         });
     }
 }
@@ -54,25 +61,19 @@ Friend.init({
     },
     owner_user_id: {
         type: sequelize_1.DataTypes.INTEGER,
-        allowNull: false,
-        validate: {
-            isNull: false
-        }
+        allowNull: false
     },
     invated_friend_id: {
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: false,
-        validate: {
-            isNull: false
-        }
     },
     accepted_friend: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: true,
     }
 }, { sequelize: index_1.sequelize, tableName: "Friend" });
-Friend.sync({}).then(() => {
-    Friend.belongsTo(user_model_1.default, { as: "owner_user", foreignKey: "owner_user_id" });
-    Friend.belongsTo(user_model_1.default, { as: "invated_friend", foreignKey: "invated_friend_id" });
-}).catch(err => console.log(err));
+user_model_1.default.hasMany(Friend, { as: "invated_friend", foreignKey: "invated_friend_id" });
+Friend.belongsTo(user_model_1.default, { as: "owner_user", foreignKey: "owner_user_id" });
+Friend.belongsTo(user_model_1.default, { as: "invated_friend", foreignKey: "invated_friend_id" });
+Friend.sync({}).then(() => { }).catch(err => console.log(err));
 exports.default = Friend;

@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.searchGuests = exports.getGuestById = exports.getAllGuest = exports.getGuest = exports.registerGuest = exports.logInGuest = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const entities_1 = require("../../entities");
 const user_model_1 = __importDefault(require("../../db/models/User/user.model"));
 // JWT constants
 const { SECRET_JWT_KEY_AUTH, EXPIRE_TIME_JWT_AUTH, } = process.env || {};
@@ -93,7 +94,7 @@ const searchGuests = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     var _a;
     try {
         const text = (_a = req.query) === null || _a === void 0 ? void 0 : _a.searchText;
-        const finded = yield user_model_1.default.findUsersBySearchText(text);
+        const finded = yield entities_1.User.findUsersBySearchText(text);
         res.json({ data: finded, status: 'ok', message: 'finded', text: text.split(" ").join("").toLowerCase() });
     }
     catch (error) {

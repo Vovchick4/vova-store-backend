@@ -24,7 +24,7 @@ function initStrategy(passport) {
         try {
             const guest = yield user_model_1.default.findByPk(payload.id);
             if (!guest) {
-                return done(null, false);
+                return done(null, { status: 401, message: "Unauthorized" });
             }
             else {
                 return done(null, guest.get());

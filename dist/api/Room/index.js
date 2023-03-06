@@ -9,4 +9,5 @@ const controller_1 = require("./controller");
 const router = express_1.default.Router();
 router.post('/', controller_1.createUserIdRoomChat);
 router.get('/:userId', passport_1.default.authenticate('jwt', { session: false }), controller_1.findByUserIdRoomChat);
+router.get('/get-last-msg/:firstId/:secondId', passport_1.default.authenticate('jwt', { session: false }), controller_1.getLastMessageRoomChat);
 exports.default = router;
